@@ -59,7 +59,7 @@ class Group extends Field implements Groupable
      *
      * @return array
      */
-    public function setGroup(array $group = []): Group
+    public function setGroup(array $group = []): self
     {
         $this->group = $group;
 
