@@ -33,8 +33,8 @@ class PermissionTest extends TestUnitCase
         $user->addRole($role);
 
         // User of role
-        $this->assertEquals(1, $user->getRoles()->count());
-        $this->assertEquals(1, $role->getUsers()->count());
+        $this->assertEquals(1, $user->roles()->count());
+        $this->assertEquals(1, $role->users()->count());
         $this->assertTrue($user->inRole('admin'));
         $this->assertTrue($user->inRole($role));
         $this->assertFalse($user->inRole('notFoundRole'));
@@ -97,9 +97,8 @@ class PermissionTest extends TestUnitCase
     private function createRole(): Role
     {
         return Role::firstOrCreate([
-            'slug' => 'admin',
+            'name' => 'admin',
         ], [
-            'slug'        => 'admin',
             'name'        => 'admin',
             'permissions' => [
                 'access.user.duplicate'       => 0,
@@ -181,7 +180,7 @@ class PermissionTest extends TestUnitCase
         $this->assertFalse($user->inRole($role));
 
         $user->addRole($role);
-        $user->removeRoleBySlug($role->slug);
+        $user->removeRoleBySlug($role->name);
 
         $this->assertFalse($user->inRole($role));
 
@@ -207,8 +206,8 @@ class PermissionTest extends TestUnitCase
     {
         $user = $this->createUser();
 
-        $roleUser = Role::factory()->create(['slug' => 'User']);
-        $roleModerator = Role::factory()->create(['slug' => 'Moderator']);
+        $roleUser = Role::factory()->create(['name' => 'User']);
+        $roleModerator = Role::factory()->create(['name' => 'Moderator']);
 
         $user->addRole($roleUser);
         $user->addRole($roleModerator);

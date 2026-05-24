@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Orchid\Platform\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Orchid\Access\RoleAccess;
-use Orchid\Access\RoleInterface;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
-use Orchid\Filters\Types\Where;
 use Orchid\Metrics\Chartable;
 use Orchid\Screen\AsSource;
 
-class Role extends Model implements RoleInterface
+class Role extends Model
 {
-    use AsSource, Chartable, Filterable, HasFactory, RoleAccess;
+    use AsSource, Chartable, Filterable, HasFactory, HasUuids, RoleAccess;
 
     /**
      * @var string
@@ -27,9 +26,7 @@ class Role extends Model implements RoleInterface
      * @var array
      */
     protected $fillable = [
-        'id',
         'name',
-        'slug',
         'permissions',
     ];
 
@@ -44,9 +41,7 @@ class Role extends Model implements RoleInterface
      * @var array
      */
     protected $allowedFilters = [
-        'id'          => Where::class,
         'name'        => Like::class,
-        'slug'        => Like::class,
         'permissions' => Like::class,
     ];
 
@@ -54,9 +49,7 @@ class Role extends Model implements RoleInterface
      * @var array
      */
     protected $allowedSorts = [
-        'id',
         'name',
-        'slug',
         'updated_at',
         'created_at',
     ];

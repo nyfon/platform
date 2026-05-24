@@ -6,11 +6,10 @@ namespace Orchid\Access;
 
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Orchid\Platform\Events\AddRoleEvent;
 use Orchid\Platform\Events\RemoveRoleEvent;
@@ -22,17 +21,9 @@ trait UserAccess
     use StatusAccess;
 
     /**
-     * @var null|\Illuminate\Support\Collection
+     * @var null|Collection
      */
     private $cachePermissions;
-
-    /**
-     * @return Collection
-     */
-    public function getRoles()
-    {
-        return $this->roles()->get();
-    }
 
     public function roles(): BelongsToMany
     {
@@ -44,18 +35,23 @@ trait UserAccess
      */
     public function inRole($role): bool
     {
-        $role = Arr::first($this->roles->all(), static function ($instance) use ($role) {
-            if ($role instanceof RoleInterface) {
-                return $instance->getRoleId() === $role->getRoleId();
-            }
-            if ($role === $instance->getRoleId() || $role === $instance->getRoleSlug()) {
-                return true;
-            }
+        if ($role instanceof Model) {
+            return $this->roles()->whereKey($role->getKey())->exists();
+        }
 
+        if (! is_string($role) && ! is_int($role)) {
             return false;
-        });
+        }
 
-        return $role !== null;
+        return $this->roles()
+            ->where(function (Builder $builder) use ($role) {
+                $builder->whereKey($role);
+
+                if (is_string($role)) {
+                    $builder->orWhere('name', $role);
+                }
+            })
+            ->exists();
     }
 
     public function hasAccess(string $permit, bool $cache = true): bool
@@ -127,7 +123,7 @@ trait UserAccess
             return $builder->whereRaw('1=0');
         }
 
-        $rule = function (Builder $builder, \Illuminate\Support\Collection $permits) {
+        $rule = function (Builder $builder, Collection $permits) {
             $permits->each(function ($permit) use ($builder) {
                 $builder->orWhere('permissions->'.$permit, true);
             });
@@ -149,32 +145,38 @@ trait UserAccess
         $result = $this->roles()->save($role);
 
         $this->eventAddRole($role);
+        $this->clearCachePermission();
 
         return $result;
     }
 
     /**
-     * Remove Role Slug.
+     * @return $this
      */
-    public function removeRoleBySlug(string $slug): int
+    public function removeRole(Model $role)
     {
-        $role = $this->roles()->where('slug', $slug)->first();
-
-        if ($role === null) {
-            return 0;
-        }
+        $this->roles()->detach($role->getKey());
 
         $this->eventRemoveRole($role);
+        $this->clearCachePermission();
 
-        return $this->roles()->detach($role);
+        return $this;
     }
 
     /**
-     * @return int|null
+     * @return $this
      */
-    public function removeRole(RoleInterface $role): int
+    public function removeRoleBySlug(string $slug)
     {
-        return $this->removeRoleBySlug($role->getRoleSlug());
+        $role = $this->roles()
+            ->where('name', $slug)
+            ->first();
+
+        if ($role === null) {
+            return $this;
+        }
+
+        return $this->removeRole($role);
     }
 
     /**
@@ -189,6 +191,7 @@ trait UserAccess
         $this->roles()->attach($roles);
 
         $this->eventAddRole($roles);
+        $this->clearCachePermission();
 
         return $this;
     }

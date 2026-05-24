@@ -73,16 +73,16 @@ class RelationTest extends TestFieldsUnitCase
     {
         $stringPrimaryClass = new class extends Role
         {
-            protected $primaryKey = 'slug';
+            protected $primaryKey = 'name';
         };
 
         /** @var Role $current */
-        $current = $this->roles->random();
+        $current = $stringPrimaryClass::query()->firstOrFail();
 
         $select = Relation::make('role')
             ->title('Select roles')
-            ->fromModel($stringPrimaryClass::class, 'name')
-            ->value($current->getRoleSlug());
+            ->fromModel($stringPrimaryClass::class, 'id')
+            ->value($current->getKey());
 
         $view = self::renderField($select);
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Orchid\Tests\Feature\Example;
 
-use Illuminate\Support\Str;
 use Orchid\Platform\Models\Role;
 use Orchid\Tests\TestFeatureCase;
 
@@ -53,22 +52,5 @@ class RoleTest extends TestFeatureCase
             ->assertSee('field-roles')
             ->assertSee($this->role->name)
             ->assertSee($this->role->slug);
-    }
-
-    public function testCanHaveStringPrimary(): void
-    {
-        $StringPrimaryClass = new class extends Role
-        {
-            protected $keyType = 'string';
-        };
-
-        $role = $StringPrimaryClass::make([
-            'id'          => Str::uuid()->toString(),
-            'slug'        => 'uuid-test',
-            'name'        => 'UUID',
-            'permissions' => [],
-        ]);
-
-        $this->assertIsString($role->getRoleId());
     }
 }
