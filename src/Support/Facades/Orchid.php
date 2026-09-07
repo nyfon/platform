@@ -6,6 +6,7 @@ namespace Orchid\Support\Facades;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
+use Orchid\Access\Permissions;
 use Orchid\Platform\Orchid as OrchidKernel;
 use Orchid\Screen\Screen;
 
@@ -13,8 +14,8 @@ use Orchid\Screen\Screen;
  * Class Orchid.
  *
  * @method static Collection  getSearch()
- * @method static Collection  getPermission()
- * @method static Collection  getAllowAllPermission()
+ * @method static Collection  permissionGroups()
+ * @method static Permissions allowedPermissions()
  * @method static string      version()
  * @method static string      prefix(string $path = '')
  * @method        static      configure(array $options)

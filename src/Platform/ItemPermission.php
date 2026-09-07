@@ -4,48 +4,47 @@ declare(strict_types=1);
 
 namespace Orchid\Platform;
 
+use Orchid\Access\PermissionGroup;
+
 /**
- * This class represents a permission group that can be used to store collections of permissions.
+ * @deprecated Use \Orchid\Access\PermissionGroup instead.
  */
-class ItemPermission
+class ItemPermission extends PermissionGroup
 {
     /**
-     * Create a new permission group instance.
+     * Backward-compatible alias for PermissionGroup::$name.
      */
-    public function __construct(
-        public string $group,
-        public array $items = []
-    ) {}
+    public string $group;
 
     /**
-     * Create a new permission group instance with the given group name.
+     * Backward-compatible alias for the permission definitions.
      *
-     * @param string $group The name of the permission group.
-     *
-     * @return self The new permission group instance.
+     * @var array<int, array{slug: string, description: string}>
      */
-    public static function group(string $group): self
-    {
-        $item = new self($group);
+    public array $items;
 
-        return $item;
+    /**
+     * @param array<int, array{slug: string, description: string}> $items
+     *
+     * @psalm-suppress UnsupportedPropertyReferenceUsage Psalm cannot analyze property aliases.
+     */
+    public function __construct(string $name, array $items = [])
+    {
+        parent::__construct($name, $items);
+
+        $this->group = &$this->name;
+        $this->items = &$this->definitions;
     }
 
-    /**
-     * Add a permission to the permission group.
-     *
-     * @param string $slug The slug of the permission.
-     * @param string $name The description of the permission.
-     *
-     * @return $this The current permission group instance.
-     */
-    public function addPermission(string $slug, string $name): self
+    #[\Deprecated(message: 'Use Orchid\Access\PermissionGroup::make() instead.')]
+    public static function group(string $name): static
     {
-        $this->items[] = [
-            'slug'        => $slug,
-            'description' => $name,
-        ];
+        return new static($name);
+    }
 
-        return $this;
+    #[\Deprecated(message: 'Use Orchid\Access\PermissionGroup::add() instead.')]
+    public function addPermission(string $slug, string $description): static
+    {
+        return $this->add($slug, $description);
     }
 }

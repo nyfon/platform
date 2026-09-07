@@ -1,5 +1,6 @@
 import ApplicationController from "./application_controller";
 import Sortable from "sortablejs";
+import { uploadFile } from "../helpers/upload";
 
 export default class extends ApplicationController {
     static values = {
@@ -100,26 +101,17 @@ export default class extends ApplicationController {
     }
 
     upload(file) {
-        let data = new FormData();
-        data.append("file", file);
-        data.append("storage", this.storageValue);
-        data.append("group", this.groupValue);
-        data.append("path", this.pathValue);
-        data.append("sort", this.countValue + 1);
-
         this.loadingValue = this.loadingValue + 1;
         this.element.ariaBusy = "true";
 
-        fetch(this.uploadUrlValue, {
-            method: "POST",
-            body: data,
-            headers: {
-                "X-CSRF-Token": document.head.querySelector(
-                    'meta[name="csrf_token"]'
-                ).content,
+        uploadFile(this.uploadUrlValue, file, {
+            data: {
+                storage: this.storageValue,
+                group: this.groupValue,
+                path: this.pathValue,
+                sort: this.countValue + 1,
             },
         })
-            .then(response => response.json())
             .then(attachment => {
                 this.element.ariaBusy = "false";
                 this.loadingValue = this.loadingValue - 1;
@@ -142,8 +134,9 @@ export default class extends ApplicationController {
                 this.togglePlaceholderShow();
                 console.error("Error:", error);
 
-                this.toast(this.errorTypeValue);
-                //alert(this.errorTypeValue);
+                this.toast(
+                    error.response?.data?.message ?? this.errorTypeValue
+                );
             });
     }
 
